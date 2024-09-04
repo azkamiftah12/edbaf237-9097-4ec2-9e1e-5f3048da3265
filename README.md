@@ -9,6 +9,9 @@
 <h3>Manajemen data user sudah terkoneksi dengan Backend yang telah saya buat.</h3>
 <br>
 <br>
+<h3>Semua requirement sudah berhasil diimplementasikan sesuai dengan video yang diberikan.</h3>
+<br>
+<br>
 <h3>Jangan lupa menjalankan Backend dengan link repositori dibawah ini, dan jangan lupa pastikan backend sudah berjalan pada localhost:3001.</h3>
 <br>
 <br>
