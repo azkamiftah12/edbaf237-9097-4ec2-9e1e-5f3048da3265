@@ -6,7 +6,7 @@ import { IoMdUndo } from "react-icons/io";
 
 const UserTable = () => {
     interface User {
-        id?: number;
+        id?: string;
         firstName: string;
         lastName: string;
         position: string;
@@ -19,7 +19,7 @@ const UserTable = () => {
     const [errorMessage, setErrorMessage]=useState<string | JSX.Element | null>(null);
     const [emailErrors, setEmailErrors] = useState<{ [key: number]: string | null }>({});
     const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'asc' | 'desc' | null }>({ key: 'firstName', direction: null });
-    const [modifiedCell, setModifiedCell] = useState<Map<number, Set<keyof User>>>(new Map());
+    const [modifiedCell, setModifiedCell] = useState<Map<string, Set<keyof User>>>(new Map());
 
     const showErrorAlert = (errMessage:string) => {
         setErrorMessage(
@@ -76,7 +76,7 @@ const UserTable = () => {
         }
     };
 
-    const handleUpdateChange = (id: number, field: keyof User, value: string) => {
+    const handleUpdateChange = (id: string, field: keyof User, value: string) => {
         const updatedUsers = users.map(user => 
             user.id === id ? { ...user, [field]: value } : user
         );
@@ -130,7 +130,7 @@ const UserTable = () => {
 
     const handleCellChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const field = e.currentTarget.dataset.field as keyof User;
-        const id = Number(e.currentTarget.dataset.id);
+        const id = e.currentTarget.dataset.id as string;
     
         if (field && id) {
             handleUpdateChange(id, field, e.target.value);
@@ -187,152 +187,151 @@ const UserTable = () => {
                 <IoMdUndo className="cursor-pointer" onClick={fetchUsers} />
             </div>
 
-            <div className="relative overflow-x-auto">
-                <table className="w-full text-sm text-left border text-gray-700 border-b-0">
-                    <thead className="text-xs text-gray-900 uppercase border">
-                        <tr>
-                            <th
-                                scope="col"
-                                className="text-nowrap px-6 py-3 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleSort('firstName')}
-                            >
-                                First Name {renderSortIcon('firstName')}
-                            </th>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleSort('lastName')}
-                            >
-                                Last Name {renderSortIcon('lastName')}
-                            </th>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleSort('position')}
-                            >
-                                Position {renderSortIcon('position')}
-                            </th>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleSort('phone')}
-                            >
-                                Phone {renderSortIcon('phone')}
-                            </th>
-                            <th
-                                scope="col"
-                                className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
-                                onClick={() => handleSort('email')}
-                            >
-                                Email {renderSortIcon('email')}
-                            </th>
+            
+            <table className="w-full min-h-24 text-sm text-left border text-gray-700 border-b-0">
+                <thead className="text-xs text-gray-900 uppercase border">
+                    <tr>
+                        <th
+                            scope="col"
+                            className="text-nowrap px-6 py-3 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => handleSort('firstName')}
+                        >
+                            First Name {renderSortIcon('firstName')}
+                        </th>
+                        <th
+                            scope="col"
+                            className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => handleSort('lastName')}
+                        >
+                            Last Name {renderSortIcon('lastName')}
+                        </th>
+                        <th
+                            scope="col"
+                            className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => handleSort('position')}
+                        >
+                            Position {renderSortIcon('position')}
+                        </th>
+                        <th
+                            scope="col"
+                            className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => handleSort('phone')}
+                        >
+                            Phone {renderSortIcon('phone')}
+                        </th>
+                        <th
+                            scope="col"
+                            className="px-6 py-3 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => handleSort('email')}
+                        >
+                            Email {renderSortIcon('email')}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {newUsers.map((user, index) => (
+                        <tr key={index}>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={user.firstName}
+                                    onChange={(e) => handleInputChange(index, 'firstName', e.target.value)}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.firstName ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={user.lastName}
+                                    onChange={(e) => handleInputChange(index, 'lastName', e.target.value)}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.lastName ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={user.position}
+                                    onChange={(e) => handleInputChange(index, 'position', e.target.value)}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.position ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={user.phone}
+                                    onChange={(e) => handleInputChange(index, 'phone', e.target.value)}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.phone ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="email"
+                                    value={user.email}
+                                    onChange={(e) => handleInputChange(index, 'email', e.target.value)}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.email ? emailErrors[index]?'bg-red-300':'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                                {emailErrors[index] && <p className="bg-red-600 text-white text-xs py-2 px-4 rounded-md w-fit absolute">{emailErrors[index]}</p>}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {newUsers.map((user, index) => (
-                            <tr key={index}>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={user.firstName}
-                                        onChange={(e) => handleInputChange(index, 'firstName', e.target.value)}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.firstName ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={user.lastName}
-                                        onChange={(e) => handleInputChange(index, 'lastName', e.target.value)}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.lastName ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={user.position}
-                                        onChange={(e) => handleInputChange(index, 'position', e.target.value)}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.position ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={user.phone}
-                                        onChange={(e) => handleInputChange(index, 'phone', e.target.value)}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.phone ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="email"
-                                        value={user.email}
-                                        onChange={(e) => handleInputChange(index, 'email', e.target.value)}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${user.email ? emailErrors[index]?'bg-red-300':'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                    {emailErrors[index] && <p className="bg-red-600 text-white text-xs py-2 px-4 rounded-md w-fit absolute">{emailErrors[index]}</p>}
-                                </td>
-                            </tr>
-                        ))}
-                        {users.map((user) => (
-                            <tr key={user.id} className="bg-white">
-                                <td>
-                                    <input
-                                        type="text"
-                                        data-id={user.id}
-                                        data-field="firstName"
-                                        value={user.firstName}
-                                        onChange={handleCellChange}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('firstName') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        data-id={user.id}
-                                        data-field="lastName"
-                                        value={user.lastName}
-                                        onChange={handleCellChange}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('lastName') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        data-id={user.id}
-                                        data-field="position"
-                                        value={user.position}
-                                        onChange={handleCellChange}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('position') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        data-id={user.id}
-                                        data-field="phone"
-                                        value={user.phone}
-                                        onChange={handleCellChange}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('phone') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        data-id={user.id}
-                                        data-field="email"
-                                        value={user.email}
-                                        onChange={handleCellChange}
-                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('email') ? emailErrors[user.id]?'bg-red-300' : 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
-                                    />
-                                    {emailErrors[user.id] && <p className="bg-red-600 text-white text-xs py-2 px-4 rounded-md w-fit absolute">{emailErrors[user.id]}</p>}
-                                </td>
-                            </tr>
-                        ))}
+                    ))}
+                    {users.map((user) => (
+                        <tr key={user.id} className="bg-white">
+                            <td>
+                                <input
+                                    type="text"
+                                    data-id={user.id}
+                                    data-field="firstName"
+                                    value={user.firstName}
+                                    onChange={handleCellChange}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('firstName') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    data-id={user.id}
+                                    data-field="lastName"
+                                    value={user.lastName}
+                                    onChange={handleCellChange}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('lastName') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    data-id={user.id}
+                                    data-field="position"
+                                    value={user.position}
+                                    onChange={handleCellChange}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('position') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    data-id={user.id}
+                                    data-field="phone"
+                                    value={user.phone}
+                                    onChange={handleCellChange}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('phone') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    data-id={user.id}
+                                    data-field="email"
+                                    value={user.email}
+                                    onChange={handleCellChange}
+                                    className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('email') ? emailErrors[user.id]?'bg-red-300' : 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                />
+                                {emailErrors[user.id] && <p className="bg-red-600 text-white text-xs py-2 px-4 rounded-md w-fit absolute">{emailErrors[user.id]}</p>}
+                            </td>
+                        </tr>
+                    ))}
 
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+            </table>
         </div>
     );
 };
