@@ -19,6 +19,7 @@ const UserTable = () => {
     const [errorMessage, setErrorMessage]=useState<string | JSX.Element | null>(null);
     const [emailErrors, setEmailErrors] = useState<{ [key: number]: string | null }>({});
     const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'asc' | 'desc' | null }>({ key: 'firstName', direction: null });
+    const [modifiedCell, setModifiedCell] = useState<Map<number, Set<keyof User>>>(new Map());
 
     const showErrorAlert = (errMessage:string) => {
         setErrorMessage(
@@ -35,6 +36,9 @@ const UserTable = () => {
     }
 
     const fetchUsers = async () => {
+        setNewUsers([]);
+        setModifiedCell(new Map())
+        setEmailErrors({});
         try {
             const response = await axios.get<User[]>('http://localhost:3001/users');
             let sortedUsers = [...response.data];
@@ -72,6 +76,17 @@ const UserTable = () => {
         }
     };
 
+    const handleUpdateChange = (id: number, field: keyof User, value: string) => {
+        const updatedUsers = users.map(user => 
+            user.id === id ? { ...user, [field]: value } : user
+        );
+        setUsers(updatedUsers);
+        
+        if (field === 'email') {
+            checkEmailUnique(value, id);
+        }
+    };
+
     const handleSort = (key: keyof User) => {
         let direction: 'asc' | 'desc' | null = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -101,10 +116,11 @@ const UserTable = () => {
         }
     
         try {
-            const response = await axios.post('http://localhost:3001/users/check-email', { email });
+            const response = await axios.post('http://localhost:3001/users/check-email', { "email":email });
             const isUnique = response.data.isUnique;
             
             setEmailErrors((prev) => ({ ...prev, [index]: isUnique ? null : 'Email Address is not unique' }));
+            console.log({ "email":email })
         } catch (error) {
             setEmailErrors((prev) => ({ ...prev, [index]: 'Error checking email' }));
         }
@@ -112,11 +128,46 @@ const UserTable = () => {
 
     const hasAnyErrors = Object.values(emailErrors).some((error) => error !== null);
 
+    const handleCellChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const field = e.currentTarget.dataset.field as keyof User;
+        const id = Number(e.currentTarget.dataset.id);
+    
+        if (field && id) {
+            handleUpdateChange(id, field, e.target.value);
+    
+            setModifiedCell(prev => {
+                const updated = new Map(prev);
+                if (!updated.has(id)) {
+                    updated.set(id, new Set());
+                }
+                const fields = updated.get(id);
+                fields?.add(field);
+                return updated;
+            });
+        }
+    };
+    
+
     const handleSave = async () => {
         try {
-            await axios.post('http://localhost:3001/users', { users: newUsers });
+            const allUsers = [...users, ...newUsers];
+            
+            const newUsersToSave = allUsers.filter(user => !user.id);
+            const existingUsersToUpdate = allUsers.filter(user => user.id);
+
+            if (newUsersToSave.length) {
+                await axios.post('http://localhost:3001/users', { users: newUsersToSave });
+            }
+
+            if (existingUsersToUpdate.length) {
+                await Promise.all(existingUsersToUpdate.map(user => 
+                    axios.put(`http://localhost:3001/users/${user.id}`, user)
+                ));
+            }
+
             fetchUsers();
             setNewUsers([]);
+            setModifiedCell(new Map());
         } catch (error) {
             showErrorAlert('Error saving users');
         }
@@ -133,11 +184,11 @@ const UserTable = () => {
             <div className="flex justify-end mb-4 mr-4 gap-4">
                 <FaPlus className="cursor-pointer" onClick={handleAddRow} />
                 <FaSave className={`cursor-pointer ${hasAnyErrors ? 'cursor-not-allowed' : ''}`} onClick={hasAnyErrors ? undefined : handleSave} />
-                <IoMdUndo className="cursor-pointer" />
+                <IoMdUndo className="cursor-pointer" onClick={fetchUsers} />
             </div>
 
             <div className="relative overflow-x-auto">
-                <table className="w-96 text-sm text-left border text-gray-700 ">
+                <table className="w-full text-sm text-left border text-gray-700 border-b-0">
                     <thead className="text-xs text-gray-900 uppercase border">
                         <tr>
                             <th
@@ -223,15 +274,62 @@ const UserTable = () => {
                                 </td>
                             </tr>
                         ))}
-                        {users.map(user => (
-                            <tr key={user.id} className="bg-white border-b">
-                                <td className="px-6 py-4">{user.firstName}</td>
-                                <td className="px-6 py-4">{user.lastName}</td>
-                                <td className="px-6 py-4">{user.position}</td>
-                                <td className="px-6 py-4">{user.phone}</td>
-                                <td className="px-6 py-4">{user.email}</td>
+                        {users.map((user) => (
+                            <tr key={user.id} className="bg-white">
+                                <td>
+                                    <input
+                                        type="text"
+                                        data-id={user.id}
+                                        data-field="firstName"
+                                        value={user.firstName}
+                                        onChange={handleCellChange}
+                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('firstName') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        data-id={user.id}
+                                        data-field="lastName"
+                                        value={user.lastName}
+                                        onChange={handleCellChange}
+                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('lastName') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        data-id={user.id}
+                                        data-field="position"
+                                        value={user.position}
+                                        onChange={handleCellChange}
+                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('position') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        data-id={user.id}
+                                        data-field="phone"
+                                        value={user.phone}
+                                        onChange={handleCellChange}
+                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('phone') ? 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        data-id={user.id}
+                                        data-field="email"
+                                        value={user.email}
+                                        onChange={handleCellChange}
+                                        className={`px-4 py-2 w-full border-0 border-b-2 border-gray-200 ${modifiedCell.get(user.id)?.has('email') ? emailErrors[user.id]?'bg-red-300' : 'bg-green-200' : 'bg-transparent'} focus:border-blue-500 focus:outline-none focus:ring-0`}
+                                    />
+                                    {emailErrors[user.id] && <p className="bg-red-600 text-white text-xs py-2 px-4 rounded-md w-fit absolute">{emailErrors[user.id]}</p>}
+                                </td>
                             </tr>
                         ))}
+
                     </tbody>
                 </table>
             </div>
